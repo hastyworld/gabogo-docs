@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>가보고 — 장소</title>
+<meta property="og:title" content="가보고 — 지금 그곳" />
+<meta property="og:description" content="검색하면 과거가 나오고, 가보고를 열면 지금이 나옵니다." />
+<style>
+  body { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; color: #1a1a1a; line-height: 1.7; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .date { color: #888; font-size: 14px; }
+  .nav { font-size: 14px; margin-bottom: 8px; }
+  .nav a { color: #b07d00; text-decoration: none; }
+  .card { border: 1px solid #eee; border-radius: 12px; padding: 20px 18px; margin: 20px 0;
+    background: #fffdf7; text-align: center; }
+  .open { display: inline-block; background: #F2A900; color: #3D2B00; font-weight: 700;
+    text-decoration: none; border-radius: 999px; padding: 14px 32px; font-size: 16px; }
+  .open:hover { background: #e09b00; }
+  .hint { color: #888; font-size: 13px; margin-top: 14px; }
+  .soon { border-top: 1px solid #eee; margin-top: 28px; padding-top: 18px;
+    color: #888; font-size: 14px; }
+  .idline { color: #bbb; font-size: 12px; margin-top: 10px; word-break: break-all; }
+</style>
+</head>
+<body>
+<p class="nav"><a href="./index.html">가보고</a></p>
+<h1 id="placeName">장소</h1>
+<p class="date">이 장소의 지금 모습을 현장 숏폼으로 볼 수 있습니다.</p>
+
+<div class="card">
+  <p><b>가보고 앱에서 이 장소를 열 수 있어요.</b></p>
+  <p><a class="open" id="openApp" href="#">앱에서 열기</a></p>
+  <p class="hint">버튼을 눌러도 열리지 않으면 앱이 설치되지 않은 것입니다.</p>
+  <p class="idline" id="idLine"></p>
+</div>
+
+<p class="soon">
+  가보고는 <b>정식 출시를 준비 중</b>입니다. 스토어 공개 후 이곳에 설치 링크가 올라옵니다.
+</p>
+
+<!--
+  스토어 링크 — 정식 공개 후 아래 주석을 풀어 .card 안에 넣으면 된다.
+  현재는 안드로이드가 비공개 테스트, iOS가 심사 중이라 두 URL 모두 외부에 404다.
+
+  <a href="https://play.google.com/store/apps/details?id=com.hastyworld.gabogo">Google Play</a>
+  <a href="https://apps.apple.com/app/id6799131366">App Store</a>
+-->
+
+<script>
+  // 공유 링크의 id(장소)·n(장소명)·t(관광타입)를 앱 딥링크로 그대로 넘긴다.
+  // t를 빠뜨리면 앱이 '12'(관광지)로 폴백하므로 축제·음식점 상세가 빈 화면이 된다.
+  // 자동 리다이렉트는 하지 않는다 — 앱 미설치 기기에서 브라우저 오류 대화상자가 뜨므로.
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var id = q.get('id');
+    var name = q.get('n');
+    var type = q.get('t');
+    var btn = document.getElementById('openApp');
+    if (name) document.getElementById('placeName').textContent = name;
+    if (id) {
+      var qp = [];
+      if (name) qp.push('n=' + encodeURIComponent(name));
+      if (type) qp.push('t=' + encodeURIComponent(type));
+      btn.href = 'nowhere://place/' + encodeURIComponent(id) +
+        (qp.length ? '?' + qp.join('&') : '');
+      document.getElementById('idLine').textContent = '장소 ID: ' + id;
+    } else {
+      btn.href = 'nowhere://';
+    }
+  })();
+</script>
+</body>
+</html>

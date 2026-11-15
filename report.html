@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>가보고 영상 신고</title>
+<!--
+  비회원 웹 신고(가보고 70차 ⑨) — 원본은 앱 저장소 docs/web/report.html, 2026-11-15 게시. 함수 public-report 로 보낸다(키·비밀값 없음).
+  · 사유 6종 글자는 앱 신고와 같은 DB 저장값이다(바꾸지 않는다).
+  · 꾸밈은 웹 약관 페이지와 같은 결(시스템 글꼴 · 760px · 표 테두리).
+-->
+<style>
+  :root { --text: #1a1a1a; --sub: #6e6e73; --line: #e5e5e5; --soft: #faf7ee; --accent: #b85c11; --bad: #c62828; --bg: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --text: #f3f4f6; --sub: #b4bac6; --line: #2e2e32; --soft: #1e1e20; --accent: #ed8b3a; --bad: #ff8a80; --bg: #121212; }
+  }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background: var(--bg);
+    max-width: 760px; margin: 0 auto; padding: 28px 16px 80px; color: var(--text); line-height: 1.7; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 18px; margin-top: 32px; border-top: 1px solid var(--line); padding-top: 20px; }
+  .date, .sub { color: var(--sub); font-size: 14px; }
+  label { display: block; font-weight: 600; margin: 20px 0 6px; }
+  input[type="text"], input[type="email"], select, textarea {
+    width: 100%; box-sizing: border-box; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  textarea { min-height: 120px; resize: vertical; }
+  .hint { color: var(--sub); font-size: 13px; margin-top: 4px; }
+  .consent { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-top: 10px; font-size: 14px; }
+  .consent table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 13px; }
+  .consent th, .consent td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+  .row { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; }
+  .row input { margin-top: 5px; }
+  .warn { color: var(--bad); font-weight: 600; }
+  button { margin-top: 24px; width: 100%; font: inherit; font-weight: 700; padding: 14px; border: 0; border-radius: 12px;
+    background: var(--accent); color: #fff; cursor: pointer; }
+  button[disabled] { opacity: 0.5; cursor: default; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  #result { margin-top: 18px; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--line); display: none; }
+</style>
+</head>
+<body>
+<h1>가보고 영상 신고</h1>
+<p class="date">로그인 없이 신고할 수 있어요 · 앱 안에서는 영상 [더보기 › 신고]로도 할 수 있어요</p>
+
+<p>가보고에 올라온 영상이 권리를 침해하거나 법에 어긋나면 알려 주세요. 운영자가 확인해 숨기거나 지우고, 회신 이메일을 남기면 처리 결과를 알려 드려요.</p>
+<p class="warn">불법촬영물(동의 없이 찍힌 신체 등)로 신고하면 영상을 바로 가려요. 영상을 내려받거나 화면을 녹화해 보내지 마세요.</p>
+
+<form id="f" novalidate>
+  <label for="ref">영상 주소 또는 공유 링크 (필수)</label>
+  <input id="ref" name="ref" type="text" inputmode="url" maxlength="500" placeholder="https://hastyworld.github.io/gabogo-docs/s.html?id=…" required />
+  <p class="hint">앱의 [공유하기]로 받은 링크를 그대로 붙여 넣으면 돼요. 찾지 못하면 운영자가 직접 확인해요.</p>
+
+  <label for="reason">사유 (필수)</label>
+  <select id="reason" name="reason" required>
+    <option value="">고르세요</option>
+    <option value="불법촬영물">불법촬영물 — 동의 없이 찍힌 신체 등이 담겼어요</option>
+    <option value="초상권 침해">초상권 침해 — 내 얼굴이 동의 없이 담겼어요</option>
+    <option value="저작권 침해">저작권 침해 — 음악·영상을 무단으로 썼어요</option>
+    <option value="폭력/혐오/선정성">폭력/혐오/선정성 — 보기 불편하거나 유해한 장면이 있어요</option>
+    <option value="스팸/광고">스팸/광고 — 광고·도배·낚시성 콘텐츠예요</option>
+    <option value="기타">기타 — 그 외 문제를 알리고 싶어요</option>
+  </select>
+
+  <label for="detail">설명 (권리 근거)</label>
+  <textarea id="detail" name="detail" maxlength="2000" placeholder="예: 영상 0:12에 제 얼굴이 나와요 / 제가 저작권을 가진 곡이에요(음원 정보)"></textarea>
+  <p class="hint">2,000자까지 · 주민등록번호 같은 민감한 정보는 적지 마세요.</p>
+
+  <label for="email">회신 이메일 (선택)</label>
+  <input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="처리 결과를 받을 주소" />
+  <div class="consent" id="consentBox">
+    <strong>개인정보 수집·이용 동의 (이메일을 적을 때만)</strong>
+    <table>
+      <tr><th>항목</th><td>이메일 주소</td></tr>
+      <tr><th>목적</th><td>신고 처리 결과 회신</td></tr>
+      <tr><th>보유</th><td>신고 처리 완료 후 30일 뒤 파기</td></tr>
+    </table>
+    동의하지 않아도 신고할 수 있어요(회신만 받을 수 없어요).
+    <div class="row"><input id="emailConsent" type="checkbox" /><label for="emailConsent" style="margin:0;font-weight:400">위 내용에 동의하고 이메일로 회신받을게요</label></div>
+  </div>
+
+  <!-- 봇 거르기 — 사람에게는 보이지 않는 칸. 채워져 있으면 저장하지 않는다 -->
+  <div class="hp" aria-hidden="true"><label for="website">웹사이트</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off" /></div>
+
+  <button id="send" type="submit">신고 보내기</button>
+  <div id="result" role="status" aria-live="polite"></div>
+</form>
+
+<h2>신고는 이렇게 처리돼요</h2>
+<ul>
+  <li>불법촬영물: 받는 즉시 영상을 가리고(파일도 비공개로 옮겨요), 운영자가 확인해 지워요. 판단이 어려우면 방송통신심의위원회에 심의를 요청해요.</li>
+  <li>그 밖의 사유: 운영자가 확인해 숨김·삭제·문제 없음으로 처리해요. 처리 기록은 3년 보관해요.</li>
+  <li>같은 곳에서 짧은 시간에 너무 많이 보내면 잠시 받지 않아요(스팸 방지 — 접속 주소는 바꾼 값으로만 24시간 보관해요).</li>
+</ul>
+<p class="sub">문의: hastyworld2050@gmail.com · 후기·순위 운영 원칙은 앱 마이 › 데이터 출처·약관에서 볼 수 있어요.</p>
+<p class="sub"><a href="./index.html">약관·방침 목록으로</a></p>
+
+<script>
+  // 함수는 로그인 없이 받는다(키 없음)
+  var ENDPOINT = 'https://ezqrwvccdluepxlrzhac.supabase.co/functions/v1/public-report';
+  var MSG = {
+    ref: '영상 주소나 공유 링크를 넣어 주세요.',
+    reason: '사유를 골라 주세요.',
+    detail: '설명은 2,000자까지 적을 수 있어요.',
+    email: '이메일 주소를 확인해 주세요.',
+    consent: '이메일로 회신받으려면 개인정보 수집·이용에 동의해 주세요. 동의하지 않으려면 이메일 칸을 비워 주세요.',
+    rate: '잠시 뒤에 다시 보내 주세요(같은 곳에서 너무 많이 보냈어요).',
+    server: '지금 신고를 받지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+  };
+  var f = document.getElementById('f');
+  var out = document.getElementById('result');
+  function show(t, bad) { out.style.display = 'block'; out.textContent = t; out.style.color = bad ? 'var(--bad)' : 'var(--text)'; }
+  f.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('send');
+    var body = {
+      ref: document.getElementById('ref').value.trim(),
+      reason: document.getElementById('reason').value,
+      detail: document.getElementById('detail').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      emailConsent: document.getElementById('emailConsent').checked,
+      website: document.getElementById('website').value
+    };
+    if (body.ref.length < 8) return show(MSG.ref, true);
+    if (!body.reason) return show(MSG.reason, true);
+    if (body.email && !body.emailConsent) return show(MSG.consent, true);
+    btn.disabled = true;
+    fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j }; }); })
+      .then(function (x) {
+        btn.disabled = false;
+        if (x.j && x.j.ok) {
+          f.reset();
+          show('신고를 받았어요. 접수 번호 ' + (x.j.ticket || '') + (x.j.needsCheck ? ' · 영상을 찾지 못해 운영자가 직접 확인해요.' : ' · 확인 후 조치할게요.'), false);
+        } else {
+          show(MSG[(x.j && x.j.code) || 'server'] || MSG.server, true);
+        }
+      })
+      .catch(function () { btn.disabled = false; show(MSG.server, true); });
+  });
+</script>
+</body>
+</html>
